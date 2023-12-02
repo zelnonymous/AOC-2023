@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 )
+// A game consists of multiple "pulls".
+// Each pull contains 0 or more cubes of a given color.
 type pull struct {
     cubes map[string]int
 }
@@ -21,6 +23,7 @@ func main() {
         "blue": 14,
     }
     p1possible := 0
+    p2power := 0
     games := make(map[int][]pull)
     file, err := os.Open("input.txt")
     if err != nil {
@@ -32,24 +35,21 @@ func main() {
         gameid, pulls := ParseGame(line) 
         games[gameid] = pulls
     }
+    // Iterate over games in order for easier debugging
     ordered_gameids := make([]int, 0)
     for gameid := range games {
         ordered_gameids = append(ordered_gameids, gameid)
     }
     sort.Ints(ordered_gameids)
+    // Part 1: Sum the game ids for games that are possible
+    // A game is possible if the number of cubes of each
+    // color for any given pull does not exceed the limits
     for _, gameid := range ordered_gameids {
         pulls := games[gameid]
         possible := true
         for _, pullinfo := range pulls {
             for color, qty := range pullinfo.cubes {
                 if qty > p1limits[color] {
-                    fmt.Printf(
-                        "In game %v, pulled %v %v but limit was %v\n",
-                        gameid,
-                        qty,
-                        color,
-                        p1limits[color],
-                    )
                     possible = false
                     break
                 }
@@ -59,14 +59,32 @@ func main() {
             }
         }
         if possible {
-            fmt.Printf(
-                "Game %v: Possible, Running Total: %v\n", 
-                gameid, 
-                p1possible)
             p1possible += gameid
         } 
     }
+    // Part 2: Find the minimum number of each color of
+    // cubes required to complete each game (eg. the largest
+    // quantity of that color across all pulls in the game)
+    // Multiply those minimum counts together to get the power
+    // for the game, and sum power across all games for the answer.
+    for _, gameid := range ordered_gameids {
+        gamepower := 1
+        pulls := games[gameid]
+        required := make(map[string]int)
+        for _, pullinfo := range pulls {
+            for color, qty := range pullinfo.cubes {
+                if qty > required[color] {
+                    required[color] = qty
+                }
+            }
+        }
+        for _, qty := range required {
+            gamepower *= qty
+        }
+        p2power += gamepower
+    }
     fmt.Printf("Part 1: Sum of possible game IDs: %v\n", p1possible)
+    fmt.Printf("Part 2: Total power of cubes: %v\n", p2power)
 
 }
 func ParseGame(line string) (int, []pull) {
