@@ -2,11 +2,12 @@ package main
 
 import (
 	"bufio"
-    "fmt"
+	"errors"
+	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
-    "strconv"
 )
 type pull struct {
     cubes map[string]int
@@ -34,27 +35,34 @@ func ParseGame(line string) (string, []pull) {
     var result []pull
     pullstrings := strings.Split(gameinfo[1], ";")
     for _, pullstring := range pullstrings {
-        cubes := make(map[string]int)
-        cubeinfo := strings.Split(pullstring, ",")
-        for _, info := range cubeinfo {
-            details := strings.Split(info, " ")
-            if len(details) < 2 {
-                fmt.Println("Warning: Found cube pull without color or count:")
-                fmt.Println(details)
-                continue
-            }
-            qty, err := strconv.Atoi(details[1])
-            if err != nil {
-                fmt.Println("Warning: Cube quantity is not a number")
-                fmt.Println(details)
-                continue
-            }
-            color := strings.TrimSpace(details[0])
-            cubes[color] = qty
-        }
-        result = append(result, pull {
-            cubes: cubes,
-        })
+        result = append(result, ParsePull(pullstring))
     }
     return gameinfo[0], result
+}
+func ParsePull(pullstring string) pull {
+    cubes := make(map[string]int)
+    cubeinfo := strings.Split(pullstring, ",")
+    for _, info := range cubeinfo {
+        color, qty, err := ParsePullCubes(info)
+        if err != nil {
+            fmt.Println(err)
+            continue
+        }
+        cubes[color] = qty
+    }
+    return pull {
+        cubes: cubes,
+    }
+}
+func ParsePullCubes(info string) (string, int, error) {
+    details := strings.Split(info, " ")
+    if len(details) < 2 {
+        return "", 0, errors.New("Found cube pull without color or count")
+    }
+    color := strings.TrimSpace(details[0])
+    qty, err := strconv.Atoi(details[1])
+    if err != nil {
+        return color, 0, errors.New("Warning: Cube quantity is not a number")
+    }
+    return color, qty, nil
 }
