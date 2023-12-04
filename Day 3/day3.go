@@ -150,10 +150,17 @@ func main() {
             total += partnum 
         }
     }
+    /*
+    Part 2: A * symbol represents a gear.  If a gear is connected to
+    EXACTLY 2 components (numbers), then the gear ratio is the 
+    product of those 2 numbers.  The sum of the products is the answer.
+    */
     ratiosTotal := 0
     for y, row := range symbols {
         for x, sym := range row {
             if sym != "*" { continue }
+            // Symbol is a gear.  Let's find out if it's connected to exactly
+            // 2 numbers.
             startrow := 0
             if y > 0 { startrow = y -1 }
             endrow := y + 1
@@ -162,6 +169,16 @@ func main() {
             secondpart := 0
             gearConnected := false
             for row := startrow; row <= endrow; row++ {
+                // Given a multi-digit number 790 that startx at row index 3
+                // column index 6, nums[6][5] will actually be empty
+                // because I'm storing the whole number at [6][3] rather than
+                // the digits at the corresponding index where that digit lives.
+                // that does make this a bit tricky.  I opted to iterate over
+                // the whole row for each row in the range (sans boundaries,
+                // the row prior to and the row after where the part appeared).
+                // If the first digit of the number or the last digit of the
+                // number intersects the range of fields around the gear, I
+                /// know it's making contact.
                 for col := 0; col < maxX; col++ {
                     if nums[row][col] == "" { continue }
                     numend := col + len(nums[row][col]) - 1
@@ -172,6 +189,14 @@ func main() {
                     (numend >= x - 1 && numend <= x + 1)) {
                         continue
                     }
+                    // If first and second part are already assigned and we
+                    // made it here, then the gear touches MORE THAN 2 parts
+                    // and we don't want to count it.  That said, we don't 
+                    // simply want to reset firstpart and secondpart because
+                    // if the gear were somehow touching 5 parts, we could
+                    // accidentally count it as a gear again after detecting the
+                    // 4th and 5th parts.  I added gearConnected as a flag
+                    // to account for this
                     if gearConnected {
                         fmt.Println("Gear is touching more than two parts, disconnecting.")
                         firstpart = 0
@@ -197,7 +222,7 @@ func main() {
             ratiosTotal += ratio
         }
     }
-
+    // Print solutions
     fmt.Printf("Part 1: Part Numbers Total: %v\n", total)
     fmt.Printf("Part 2: Gear Ratios Total: %v\n", ratiosTotal)
 } 
