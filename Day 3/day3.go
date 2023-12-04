@@ -150,30 +150,54 @@ func main() {
             total += partnum 
         }
     }
-    // Work in progress for day 2...
-    /*
+    ratiosTotal := 0
     for y, row := range symbols {
         for x, sym := range row {
             if sym != "*" { continue }
-            startcol := 0
-            if x > 0 { startcol = x - 1 }
-            endcol := x + 1
-            if y > maxX { endcol = maxX }
             startrow := 0
             if y > 0 { startrow = y -1 }
             endrow := y + 1
             if endrow > maxY -1 { endrow = maxY - 1 }
-            fmt.Printf(
-                "Searching for numbers between %v,%v and %v,%v (inclusive)\n",
-                startrow, startcol, endrow, endcol)
+            firstpart := 0
+            secondpart := 0
+            gearConnected := false
             for row := startrow; row <= endrow; row++ {
-                for col := startcol; col <= endcol; col++ {
-                    
+                for col := 0; col < maxX; col++ {
+                    if nums[row][col] == "" { continue }
+                    numend := col + len(nums[row][col]) - 1
+                    // This number is touching the gear if it's first or last
+                    // digit is in the range of the gear's position - 1 and
+                    // the gear's position + 1
+                    if !((col >= x - 1 && col <= x + 1) ||
+                    (numend >= x - 1 && numend <= x + 1)) {
+                        continue
+                    }
+                    if gearConnected {
+                        fmt.Println("Gear is touching more than two parts, disconnecting.")
+                        firstpart = 0
+                        secondpart = 0
+                    }
+                    if (firstpart == 0) {
+                        firstpart, err = strconv.Atoi(nums[row][col])
+                        if err != nil { log.Fatal(err) }
+                        continue
+                    }
+                    if (secondpart == 0) {
+                        secondpart, err = strconv.Atoi(nums[row][col])
+                        gearConnected = true
+                        if err != nil { log.Fatal(err) }
+                        continue
+                    }
                 }
             }
+            if gearConnected {
+                fmt.Printf("Gear connected to %v and %v\n", firstpart, secondpart)
+            }
+            ratio := firstpart * secondpart
+            ratiosTotal += ratio
         }
     }
-    */
 
-    fmt.Printf("Part 1: Part Numbers Total: %v", total)
+    fmt.Printf("Part 1: Part Numbers Total: %v\n", total)
+    fmt.Printf("Part 2: Gear Ratios Total: %v\n", ratiosTotal)
 } 
