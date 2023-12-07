@@ -1,0 +1,35 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"strings"
+)
+
+type Hand struct {
+    cards []string
+    bid int
+}
+
+var hands []Hand
+
+func main() {
+    file,err := os.Open("example.txt")
+    if err != nil { log.Fatal(err) }
+    scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        line := scanner.Text()
+        handParts := strings.Split(line, " ")
+        bid, err := strconv.Atoi(handParts[0])
+        if err != nil { log.Fatal(err) }
+        hands = append(hands, Hand {
+            cards: strings.Split(handParts[0], ""),
+            bid: bid,
+        })
+        fmt.Println(line)
+    }
+    
+}
