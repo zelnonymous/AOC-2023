@@ -38,6 +38,7 @@ var outdirection  = map[rune]map[rune]rune {
     },
 }
 var pipemap [][]rune
+var p2PathPositions []Position
 var start Position
 func main() {
     file, err := os.Open("input.txt")
@@ -58,12 +59,20 @@ func main() {
         pipemap = append(pipemap, row)
     }
     fmt.Printf("Starting from row %v col %v\n", start.y, start.x)
+    p2PathPositions = append(p2PathPositions, Position {
+        y: start.y,
+        x: start.x,
+    })
     var paths []Position
     for _, direction := range []rune { 'L', 'U', 'R', 'D' } {
         startPath := Position { x: start.x, y: start.y, steps: 0 }
         Move(&startPath, direction)
         if startPath.x != start.x || startPath.y != start.y {
             paths = append(paths, startPath)
+            p2PathPositions = append(p2PathPositions, Position {
+                y: startPath.y,
+                x: startPath.x,
+            })
         }
     }
     for idx, path := range paths {
@@ -79,12 +88,68 @@ func main() {
                 idx, string(pipemap[pstartY][pstartX]), pstartY, pstartX,
                 string(pipemap[paths[idx].y][paths[idx].x]), 
                 paths[idx].y, paths[idx].x)
+            p2PathPositions = append(p2PathPositions, Position {
+                y: paths[idx].y,
+                x: paths[idx].x,
+            })
             if paths[idx].x == pstartX && paths[idx].y == pstartY {
                 log.Fatal("Reached a dead end!")
             }
         }
     }
+    containedCount := 0
+    for _,path := range p2PathPositions {
+        pipemap[path.y][path.x] = '@'
+    }
+    for row := range pipemap {
+        if pipemap[row][0] == '@' { continue }
+        pipemap[row][0] = '#'
+    }
+    for row := range pipemap {
+        if pipemap[row][len(pipemap[row])-1] == '@' { continue }
+        pipemap[row][len(pipemap[row])-1] = '#'
+    }
+    for col := range pipemap[0] {
+        if pipemap[0][col] == '@' { continue }
+        pipemap[0][col] = '#'
+    }
+    for col := range pipemap[len(pipemap) - 1] {
+        if pipemap[len(pipemap)-1][col] == '@' { continue }
+        pipemap[len(pipemap)-1][col] = '#'
+    }
+    changedCnt := 1
+    for changedCnt != 0 {
+        changedCnt = 0
+        for row := 1; row < len(pipemap) -1; row++ {
+            for col := 1; col < len(pipemap[row]) -1; col++ {
+                if pipemap[row][col] != '@' && 
+                    pipemap[row][col] != '#' && 
+                    (pipemap[row][col -1] == '#' ||
+                    pipemap[row][col + 1] == '#' ||
+                    pipemap[row - 1][col] == '#' ||
+                    pipemap[row + 1][col] == '#') {
+                    changedCnt += 1
+                    pipemap[row][col] = '#'
+                }
+            }
+        }
+    }
+    for row := range pipemap {
+        for col := range pipemap[row] {
+            if pipemap[row][col] != '@' &&
+                pipemap[row][col] != '#' {
+                containedCount++
+            }
+        }
+    }
+    for rowIdx := range pipemap {
+        for colIdx := range pipemap[rowIdx] {
+            fmt.Print(string(pipemap[rowIdx][colIdx]))
+        }
+        fmt.Println()
+    }
     fmt.Printf("Part 1: Total Steps: %v\n", paths[0].steps)
+    fmt.Printf("Part 2: Area: %v\n", containedCount)
 }
 func Move(pos *Position, direction rune) {
     newY := pos.y
