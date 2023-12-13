@@ -74,6 +74,8 @@ func main () {
     }
     fmt.Printf("Part 1: Total Posssible Arrangements: %v\n", 
         p1TotalArrangements)
+    fmt.Printf("Part 2: Total Posssible Arrangements: %v\n", 
+        p2TotalArrangements)
 
 }
 func GenerateArrangements(rec *Record) {
@@ -93,8 +95,6 @@ func GenAllArrangements(source string, qIdx []int, rec *Record) {
     for mIdx,idx := range qIdx {
         next := []rune(source)
         next[idx] = '#'
-        fmt.Printf("Testing arrangement %v with expression %v on source line %v\n",
-            string(next), rec.matchExpr.String(), string(rec.springs))
         if rec.matchExpr.MatchString(string(next)) {
             rec.matchCnt++
             fmt.Printf("Arrangement %v matched expression %v on source line %v. ",
